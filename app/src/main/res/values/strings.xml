@@ -21,5 +21,7 @@
     <string name="dropped_pin">Dropped Pin</string>
     <string name="poi">poi</string>
     <string name="zoom">15f</string>
+    <string name="search_location">Search Location</string>
+    <string name="my_location">My Location</string>
 
 </resources>

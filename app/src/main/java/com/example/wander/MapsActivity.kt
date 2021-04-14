@@ -17,22 +17,22 @@
 package com.example.wander
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.res.Resources
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.wander.R
-
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.*
 
 
@@ -43,6 +43,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var map: GoogleMap
     private val TAG = MapsActivity::class.java.simpleName
     private val REQUEST_LOCATION_PERMISSION = 1
+    /*private lateinit var fusedLocationProviderClient: FusedLocationProviderClient*/
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +52,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        findViewById<FloatingActionButton>(R.id.my_location).setOnClickListener {
+            val latLng = LatLng(map.myLocation.latitude, map.myLocation.longitude)
+            val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 18f)
+            map.animateCamera(cameraUpdate)
+
+            map.setOnMyLocationButtonClickListener {
+                println("my location")
+                return@setOnMyLocationButtonClickListener false
+            }
+        }
     }
 
     /**
@@ -169,21 +181,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     // Checks that users have given permission
-    private fun isPermissionGranted() : Boolean {
-       return ContextCompat.checkSelfPermission(
+    private fun isPermissionGranted(): Boolean {
+        return ContextCompat.checkSelfPermission(
             this,
-           Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     // Checks if users have given their location and sets location enabled if so.
+    @SuppressLint("MissingPermission")
     private fun enableMyLocation() {
         if (isPermissionGranted()) {
             map.isMyLocationEnabled = true
-        }
-        else {
+            map.uiSettings?.isMyLocationButtonEnabled = false
+        } else {
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION),
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                 REQUEST_LOCATION_PERMISSION
             )
         }
@@ -195,7 +209,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
-        grantResults: IntArray) {
+        grantResults: IntArray
+    ) {
         // Check if location permissions are granted and if so enable the
         // location data layer.
         if (requestCode == REQUEST_LOCATION_PERMISSION) {
